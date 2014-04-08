@@ -11,12 +11,12 @@ struct brogueConsole {
 
 void loadKeymap();
 
-#ifdef BROGUE_TCOD
-extern struct brogueConsole tcodConsole;
-#endif
-
 #ifdef BROGUE_CURSES
 extern struct brogueConsole cursesConsole;
+#endif
+
+#ifdef BROGUE_SODNA
+extern struct brogueConsole sodnaConsole;
 #endif
 
 extern struct brogueConsole currentConsole;

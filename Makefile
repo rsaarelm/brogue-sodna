@@ -1,6 +1,6 @@
 
-SDL_FLAGS = `sdl-config --cflags` `sdl-config --libs`
-LIBTCODDIR=src/libtcod-1.5.2
+SDL2_FLAGS = `sdl2-config --cflags` `sdl2-config --libs`
+SODNADIR=src/sodna-0.2.0
 CFLAGS=-Isrc/brogue -Isrc/platform -Wall -Wno-parentheses ${DEFINES}
 RELEASENAME=brogue-1.7.2
 LASTTARGET := $(shell ./brogue --target)
@@ -10,8 +10,8 @@ ifeq (${LASTTARGET},both)
 all : both
 else ifeq (${LASTTARGET},curses)
 all : curses
-else ifeq (${LASTTARGET},tcod)
-all : tcod
+else ifeq (${LASTTARGET},sodna)
+all : sodna
 else
 all : both
 endif
@@ -38,56 +38,55 @@ BROGUEFILES=src/brogue/Architect.o \
 	src/platform/main.o \
 	src/platform/platformdependent.o \
 	src/platform/curses-platform.o \
-	src/platform/tcod-platform.o \
+	src/platform/sodna-platform.o \
 	src/platform/term.o
-
-TCOD_DEF = -DBROGUE_TCOD -I$(LIBTCODDIR)/include
-TCOD_DEP = ${LIBTCODDIR}
-TCOD_LIB = -L. -L${LIBTCODDIR} ${SDL_FLAGS} -ltcod -Wl,-rpath,.
 
 CURSES_DEF = -DBROGUE_CURSES
 CURSES_LIB = -lncurses -lm
 
-
-tcod : DEPENDENCIES += ${TCOD_DEP}
-tcod : DEFINES += ${TCOD_DEF}
-tcod : LIBRARIES += ${TCOD_LIB}
+SODNA_DEF = -DBROGUE_SODNA -I${SODNADIR}/include
+SODNA_DEP = ${SODNADIR}
+SODNA_LIB = -L. -L${SODNADIR} ${SDL2_FLAGS} -lsodna_sdl2 -lm -Wl,-rpath,.
 
 curses : DEFINES = ${CURSES_DEF}
 curses : LIBRARIES = ${CURSES_LIB}
 
-both : DEPENDENCIES += ${TCOD_DEP}
-both : DEFINES += ${TCOD_DEF} ${CURSES_DEF}
-both : LIBRARIES += ${TCOD_LIB} ${CURSES_LIB}
+sodna : DEPENDENCIES += ${SODNA_DEP}
+sodna : DEFINES += ${SODNA_DEF}
+sodna : LIBRARIES += ${SODNA_LIB}
+
+both : DEPENDENCIES += ${SODNA_DEP}
+both : DEFINES += ${CURSES_DEF} ${SODNA_DEF}
+both : LIBRARIES += ${CURSES_LIB} ${SODNA_LIB}
 
 ifeq (${LASTTARGET},both)
 both : bin/brogue
-tcod : clean bin/brogue
 curses : clean bin/brogue
+sodna : clean bin/brogue
 else ifeq (${LASTTARGET},curses)
 curses : bin/brogue
-tcod : clean bin/brogue
 both : clean bin/brogue
-else ifeq (${LASTTARGET},tcod)
-tcod : bin/brogue
+sodna : clean bin/brogue
+else ifeq (${LASTTARGET},sodna)
 curses : clean bin/brogue
 both : clean bin/brogue
+sodna : bin/brogue
 else
 both : bin/brogue
 curses : bin/brogue
-tcod : bin/brogue
+sodna : bin/brogue
 endif
 
-.PHONY : clean both curses tcod tar
+.PHONY : clean both curses sodna tar
 
 bin/brogue : ${DEPENDENCIES} ${BROGUEFILES}
 	$(CC) -O2 -march=i586 -o bin/brogue ${BROGUEFILES} ${LIBRARIES} -Wl,-rpath,.
 
-clean : 
+clean :
 	rm -f src/brogue/*.o src/platform/*.o bin/brogue
 
-${LIBTCODDIR} :
-	src/get-libtcod.sh
+${SODNADIR} :
+	src/get-sodna.sh
 
 tar : both
 	rm -f ${RELEASENAME}.tar.gz

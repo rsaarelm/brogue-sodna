@@ -20,8 +20,7 @@ static int old_mouse_x = 0;
 static int old_mouse_y = 0;
 static int mouse_x = 0;
 static int mouse_y = 0;
-static int last_mouse_timestamp = 0;
-#define MOUSE_SAMPLE_DELAY 36
+#define PAUSE_BETWEEN_EVENT_POLLING 36
 
 static boolean mouse_pos_changed() {
     if (old_mouse_x != mouse_x || old_mouse_y != mouse_y) {
@@ -93,115 +92,144 @@ static sodna_Event get_event(boolean consume) {
     return e;
 }
 
+static boolean breaks_pause(sodna_Event e) {
+    return e.type == SODNA_EVENT_KEY_DOWN ||
+        e.type == SODNA_EVENT_CHARACTER ||
+        e.type == SODNA_EVENT_MOUSE_DOWN ||
+        e.type == SODNA_EVENT_MOUSE_UP;
+}
+
 static boolean sodna_pauseForMilliseconds(short milliseconds) {
     sodna_flush();
     sodna_sleep_ms(milliseconds);
-    sodna_Event e = get_event(false);
-    return e.type == SODNA_EVENT_KEY_DOWN ||
-        e.type == SODNA_EVENT_CHARACTER ||
-        e.type == SODNA_EVENT_MOUSE_DOWN;
+
+    sodna_Event e;
+    do {
+        e = get_event(false);
+    } while (!breaks_pause(e) && e.type != SODNA_EVENT_NONE);
+
+    return e.type != SODNA_EVENT_NONE;
 }
 
 static void sodna_nextKeyOrMouseEvent(
         rogueEvent *returnEvent, boolean textInput, boolean colorsDance) {
-retry:
-    sodna_flush();
-    sodna_Event e = get_event(true);
-    if (colorsDance) {
-        shuffleTerrainColors(3, true);
-        commitDraws();
-    }
+    int time, waitTime;
+    boolean mouseMoved = false;
+    for (;;) {
+        time = sodna_ms_elapsed();
+        if (colorsDance) {
+            shuffleTerrainColors(3, true);
+            commitDraws();
+        }
+        sodna_flush();
 
-    returnEvent->controlKey = ctrl_pressed;
-    returnEvent->shiftKey = shift_pressed;
+        sodna_Event e = get_event(true);
 
-    if (e.type == SODNA_EVENT_CLOSE_WINDOW) {
-        rogue.gameHasEnded = true;
-        rogue.nextGame = NG_QUIT; // causes the menu to drop out immediately
-        returnEvent->eventType = KEYSTROKE;
-        returnEvent->param1 = ESCAPE_KEY;
-        return;
-    }
+        // We get lots of mouse events, loop to flush out several consecutive
+        // ones. Do break at some point though.
+        if (e.type == SODNA_EVENT_MOUSE_MOVED) {
+            for (;;) {
+                if (mouse_pos_changed())
+                    mouseMoved = true;
+                // Peek at the future event, try to stop this loop at the last
+                // mouse moved event of the sequence.
+                if (get_event(false).type != SODNA_EVENT_MOUSE_MOVED)
+                    break;
+                if (sodna_ms_elapsed() - time > PAUSE_BETWEEN_EVENT_POLLING)
+                    break;
+                e = get_event(true);
+            }
+        }
 
-    if (e.type == SODNA_EVENT_MOUSE_MOVED &&
-            sodna_ms_elapsed() - last_mouse_timestamp > MOUSE_SAMPLE_DELAY) {
-        last_mouse_timestamp = sodna_ms_elapsed();
-        if (mouse_pos_changed()) {
+        returnEvent->controlKey = ctrl_pressed;
+        returnEvent->shiftKey = shift_pressed;
+
+        if (e.type == SODNA_EVENT_CLOSE_WINDOW) {
+            rogue.gameHasEnded = true;
+            rogue.nextGame = NG_QUIT; // causes the menu to drop out immediately
+            returnEvent->eventType = KEYSTROKE;
+            returnEvent->param1 = ESCAPE_KEY;
+            return;
+        }
+
+
+        if (e.type == SODNA_EVENT_MOUSE_DOWN) {
+            returnEvent->param1 = mouse_x;
+            returnEvent->param2 = mouse_y;
+            if (e.button.id == SODNA_LEFT_BUTTON) {
+                returnEvent->eventType = MOUSE_DOWN;
+                return;
+            }
+            if (e.button.id == SODNA_RIGHT_BUTTON) {
+                returnEvent->eventType = RIGHT_MOUSE_DOWN;
+                return;
+            }
+        }
+
+        if (e.type == SODNA_EVENT_MOUSE_UP) {
+            returnEvent->param1 = mouse_x;
+            returnEvent->param2 = mouse_y;
+            if (e.button.id == SODNA_LEFT_BUTTON) {
+                returnEvent->eventType = MOUSE_UP;
+                return;
+            }
+            if (e.button.id == SODNA_RIGHT_BUTTON) {
+                returnEvent->eventType = RIGHT_MOUSE_UP;
+                return;
+            }
+        }
+
+        if (e.type == SODNA_EVENT_CHARACTER) {
+            returnEvent->param1 = e.ch.code;
+            returnEvent->eventType = KEYSTROKE;
+            return;
+        }
+
+        if (e.type == SODNA_EVENT_KEY_DOWN) {
+            returnEvent->eventType = KEYSTROKE;
+
+            switch (e.key.layout) {
+#define K(sodna, brogue) case sodna: returnEvent->param1 = brogue; return;
+                K(SODNA_KEY_UP, UP_ARROW)
+                    K(SODNA_KEY_DOWN, DOWN_ARROW)
+                    K(SODNA_KEY_LEFT, LEFT_ARROW)
+                    K(SODNA_KEY_RIGHT, RIGHT_ARROW)
+                    K(SODNA_KEY_HOME, UPLEFT_KEY)
+                    K(SODNA_KEY_END, DOWNLEFT_KEY)
+                    K(SODNA_KEY_PAGE_UP, UPRIGHT_KEY)
+                    K(SODNA_KEY_PAGE_DOWN, DOWNRIGHT_KEY)
+                    K(SODNA_KEY_KP_1, NUMPAD_1)
+                    K(SODNA_KEY_KP_2, NUMPAD_2)
+                    K(SODNA_KEY_KP_3, NUMPAD_3)
+                    K(SODNA_KEY_KP_4, NUMPAD_4)
+                    K(SODNA_KEY_KP_5, NUMPAD_5)
+                    K(SODNA_KEY_KP_6, NUMPAD_6)
+                    K(SODNA_KEY_KP_7, NUMPAD_7)
+                    K(SODNA_KEY_KP_8, NUMPAD_8)
+                    K(SODNA_KEY_KP_9, NUMPAD_9)
+                    K(SODNA_KEY_KP_0, NUMPAD_0)
+                    K(SODNA_KEY_TAB, TAB_KEY)
+                    K(SODNA_KEY_ENTER, RETURN_KEY)
+                    K(SODNA_KEY_KP_ENTER, ENTER_KEY)
+                    K(SODNA_KEY_BACKSPACE, DELETE_KEY)
+                    K(SODNA_KEY_ESCAPE, ESCAPE_KEY)
+#undef K
+                    break;
+            }
+        }
+
+        if (mouseMoved) {
             returnEvent->eventType = MOUSE_ENTERED_CELL;
             returnEvent->param1 = mouse_x;
             returnEvent->param2 = mouse_y;
             return;
         }
-    }
 
-    if (e.type & 0x7f == SODNA_EVENT_MOUSE_DOWN) {
-        returnEvent->param1 = mouse_x;
-        returnEvent->param2 = mouse_y;
-        if (e.button.id == SODNA_LEFT_BUTTON) {
-	    returnEvent->eventType =
-                (e.type == SODNA_EVENT_MOUSE_UP ? MOUSE_UP : MOUSE_DOWN);
-            return;
-        }
-        if (e.button.id == SODNA_RIGHT_BUTTON) {
-	    returnEvent->eventType =
-                (e.type == SODNA_EVENT_MOUSE_UP ? RIGHT_MOUSE_UP : RIGHT_MOUSE_DOWN);
-            return;
+        waitTime = time + PAUSE_BETWEEN_EVENT_POLLING - sodna_ms_elapsed();
+        if (waitTime > 0 && waitTime <= PAUSE_BETWEEN_EVENT_POLLING) {
+            sodna_sleep_ms(waitTime);
         }
     }
-
-    if (e.type == SODNA_EVENT_MOUSE_UP) {
-        returnEvent->param1 = mouse_x;
-        returnEvent->param2 = mouse_y;
-        if (e.button.id == SODNA_LEFT_BUTTON) {
-	    returnEvent->eventType = MOUSE_UP;
-            return;
-        }
-        if (e.button.id == SODNA_RIGHT_BUTTON) {
-	    returnEvent->eventType = RIGHT_MOUSE_UP;
-            return;
-        }
-    }
-
-    if (e.type == SODNA_EVENT_CHARACTER) {
-        returnEvent->param1 = e.ch.code;
-        returnEvent->eventType = KEYSTROKE;
-        return;
-    }
-
-    if (e.type == SODNA_EVENT_KEY_DOWN) {
-        returnEvent->eventType = KEYSTROKE;
-
-        switch (e.key.layout) {
-#define K(sodna, brogue) case sodna: returnEvent->param1 = brogue; return;
-            K(SODNA_KEY_UP, UP_ARROW)
-            K(SODNA_KEY_DOWN, DOWN_ARROW)
-            K(SODNA_KEY_LEFT, LEFT_ARROW)
-            K(SODNA_KEY_RIGHT, RIGHT_ARROW)
-            K(SODNA_KEY_HOME, UPLEFT_KEY)
-            K(SODNA_KEY_END, DOWNLEFT_KEY)
-            K(SODNA_KEY_PAGE_UP, UPRIGHT_KEY)
-            K(SODNA_KEY_PAGE_DOWN, DOWNRIGHT_KEY)
-            K(SODNA_KEY_KP_1, NUMPAD_1)
-            K(SODNA_KEY_KP_2, NUMPAD_2)
-            K(SODNA_KEY_KP_3, NUMPAD_3)
-            K(SODNA_KEY_KP_4, NUMPAD_4)
-            K(SODNA_KEY_KP_5, NUMPAD_5)
-            K(SODNA_KEY_KP_6, NUMPAD_6)
-            K(SODNA_KEY_KP_7, NUMPAD_7)
-            K(SODNA_KEY_KP_8, NUMPAD_8)
-            K(SODNA_KEY_KP_9, NUMPAD_9)
-            K(SODNA_KEY_KP_0, NUMPAD_0)
-            K(SODNA_KEY_TAB, TAB_KEY)
-            K(SODNA_KEY_ENTER, RETURN_KEY)
-            K(SODNA_KEY_KP_ENTER, ENTER_KEY)
-            K(SODNA_KEY_BACKSPACE, DELETE_KEY)
-            K(SODNA_KEY_ESCAPE, ESCAPE_KEY)
-#undef K
-            break;
-        }
-    }
-
-    goto retry;
 }
 
 static void sodna_plotChar(

@@ -209,45 +209,44 @@ static void sodna_plotChar(
         short foreRed, short foreGreen, short foreBlue,
         short backRed, short backGreen, short backBlue) {
     sodna_Cell c;
+    if (ch > 128) {
+        switch (ch) {
 #ifdef USE_UNICODE
-    // because we can't look at unicode and ascii without messing with Rogue.h, reinterpret until some later version comes along:
-    switch (ch) {
-        case FLOOR_CHAR: ch = '.'; break;
-        case CHASM_CHAR: ch = ':'; break;
-        case TRAP_CHAR: ch = '%'; break;
-        case FIRE_CHAR: ch = '^'; break;
-        case FOLIAGE_CHAR: ch = '&'; break;
-        case AMULET_CHAR: ch = ','; break;
-        case SCROLL_CHAR: ch = '?'; break;
-        case RING_CHAR: ch = '='; break;
-        case WEAPON_CHAR: ch = '('; break;
-        case GEM_CHAR: ch = '+'; break;
-        case TOTEM_CHAR: ch = '0'; break;
-        case BAD_MAGIC_CHAR: ch = '+'; break;
-        case GOOD_MAGIC_CHAR: ch = '$'; break;
+            case FLOOR_CHAR: ch = 128 + 0; break;
+            case CHASM_CHAR: ch = 128 + 1; break;
+            case TRAP_CHAR: ch = 128 + 2; break;
+            case FIRE_CHAR: ch = 128 + 3; break;
+            case FOLIAGE_CHAR: ch = 128 + 4; break;
+            case AMULET_CHAR: ch = 128 + 5; break;
+            case SCROLL_CHAR: ch = 128 + 6; break;
+            case RING_CHAR: ch = 128 + 7; break;
+            case WEAPON_CHAR: ch = 128 + 8; break;
+            case GEM_CHAR: ch = 128 + 9; break;
+            case TOTEM_CHAR: ch = 128 + 10; break;
+            case BAD_MAGIC_CHAR: ch = 128 + 12; break;
+            case GOOD_MAGIC_CHAR: ch = 128 + 13; break;
 
-        case DOWN_ARROW_CHAR: ch = 'v'; break;
-        case LEFT_ARROW_CHAR: ch = '<'; break;
-        case RIGHT_ARROW_CHAR: ch = '>'; break;
+            case DOWN_ARROW_CHAR: ch = 144 + 1; break;
+            case LEFT_ARROW_CHAR: ch = 144 + 2; break;
+            case RIGHT_ARROW_CHAR: ch = 144 + 3; break;
+            case UP_TRIANGLE_CHAR: ch = 144 + 4; break;
+            case DOWN_TRIANGLE_CHAR: ch = 144 + 5; break;
+            case OMEGA_CHAR: ch = 144 + 6; break;
+            case THETA_CHAR: ch = 144 + 7; break;
+            case LAMDA_CHAR: ch = 144 + 8; break;
+            case KOPPA_CHAR: ch = 144 + 9; break; // is this right?
+            case CHARM_CHAR: ch = 144 + 9; break;
+            case LOZENGE_CHAR: ch = 144 + 10; break;
+            case CROSS_PRODUCT_CHAR: ch = 144 + 11; break;
 
-        case UP_TRIANGLE_CHAR: ch = '^'; break;
-        case DOWN_TRIANGLE_CHAR: ch = 'v'; break;
+            case UNICORN_CHAR: ch = 160 + 3; break;
 
-        case CHARM_CHAR: ch = '7'; break;
-
-        case OMEGA_CHAR: ch = '<'; break;
-        case THETA_CHAR: ch = '0'; break;
-        case LAMDA_CHAR: ch = '^'; break;
-        case KOPPA_CHAR: ch = '0'; break;
-
-        case LOZENGE_CHAR: ch = 'o'; break;
-        case CROSS_PRODUCT_CHAR: ch = 'x'; break;
-
-        case STATUE_CHAR: ch = '5'; break;
-        case UNICORN_CHAR: ch = 'U'; break;
-    }
+            case STATUE_CHAR: ch = 224 + 1; break;
 #endif
-    c.symbol = ch % 256;
+            default: ch = '?'; break;
+        }
+    }
+    c.symbol = ch;
 
     c.fore_r = foreRed * 15 / 100;
     c.fore_g = foreGreen * 15 / 100;

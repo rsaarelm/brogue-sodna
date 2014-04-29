@@ -1,12 +1,14 @@
 #ifdef BROGUE_SODNA
 #include "sodna.h"
 #include "platform.h"
+#include "sodna_util.h"
 #include <time.h>
 
 extern playerCharacter rogue;
 
 static void gameLoop(){
-    sodna_init(8, 8, COLS, ROWS, "Brogue");
+    sodna_init(8, 12, COLS, ROWS, "Brogue");
+    sodna_load_font_sheet("fonts/terminus-14.png");
     rogueMain();
     sodna_exit();
 }
@@ -34,7 +36,7 @@ static void screenshot() {
     // TODO: timestamp filename.
     static char buf[256];
     snprintf(buf, sizeof(buf), "brogue-%u.png", (unsigned)time(NULL));
-    sodna_save_screenshot(buf);
+    sodna_save_screenshot_png(buf);
 }
 
 // Use event to update input system state before returning it.

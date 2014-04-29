@@ -39,6 +39,7 @@ BROGUEFILES=src/brogue/Architect.o \
 	src/platform/platformdependent.o \
 	src/platform/curses-platform.o \
 	src/platform/sodna-platform.o \
+	src/platform/sodna_util.o \
 	src/platform/term.o
 
 CURSES_DEF = -DBROGUE_CURSES

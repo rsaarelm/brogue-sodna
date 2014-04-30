@@ -3,18 +3,9 @@ SDL2_FLAGS = `sdl2-config --cflags` `sdl2-config --libs`
 SODNADIR=src/sodna-0.2.0
 CFLAGS=-Isrc/brogue -Isrc/platform -Wall -Wno-parentheses ${DEFINES}
 RELEASENAME=brogue-1.7.2
-LASTTARGET := $(shell ./brogue --target)
 CC ?= gcc
 
-ifeq (${LASTTARGET},both)
 all : both
-else ifeq (${LASTTARGET},curses)
-all : curses
-else ifeq (${LASTTARGET},sodna)
-all : sodna
-else
-all : both
-endif
 
 %.o : %.c Makefile src/brogue/Rogue.h src/brogue/IncludeGlobals.h
 	$(CC) $(CFLAGS) -g -o $@ -c $< 

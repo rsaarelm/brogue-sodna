@@ -37,7 +37,7 @@ CURSES_DEF = -DBROGUE_CURSES
 CURSES_LIB = -lncurses -lm
 
 SODNA_DEF = -DBROGUE_SODNA -I${SODNADIR}/include
-SODNA_DEP = ${SODNADIR}
+SODNA_DEP = bin/libsodna_sdl2.so
 SODNA_LIB = -L. -L${SODNADIR} ${SDL2_FLAGS} -lsodna_sdl2 -lm -Wl,-rpath,.
 
 curses : DEFINES = ${CURSES_DEF}
@@ -71,14 +71,15 @@ endif
 
 .PHONY : clean both curses sodna tar
 
-bin/brogue : ${DEPENDENCIES} ${BROGUEFILES}
+# FIXME: libsodna isn't getting built via ${DEPENDENCIES}
+bin/brogue : bin/libsodna_sdl2.so ${DEPENDENCIES} ${BROGUEFILES}
 	$(CC) -O2 -march=i586 -o bin/brogue ${BROGUEFILES} ${LIBRARIES} -Wl,-rpath,.
 
 clean :
-	rm -f src/brogue/*.o src/platform/*.o bin/brogue
+	rm -f src/brogue/*.o src/platform/*.o bin/brogue bin/libsodna_sdl2.so
 
-${SODNADIR} :
-	src/get-sodna.sh
+bin/libsodna_sdl2.so:
+	cd ${SODNADIR}; make; cp libsodna_sdl2.so ../../bin
 
 tar : both
 	rm -f ${RELEASENAME}.tar.gz

@@ -57,10 +57,10 @@ static void badArgument(const char *arg) {
 
 int main(int argc, char *argv[])
 {
-#ifdef BROGUE_CURSES
-		currentConsole = cursesConsole;
-#else
+#ifdef BROGUE_SODNA
 		currentConsole = sodnaConsole;
+#else
+		currentConsole = cursesConsole;
 #endif
 
 	rogue.nextGame = NG_NOTHING;

@@ -7,8 +7,7 @@
 extern playerCharacter rogue;
 
 static void gameLoop(){
-    sodna_init(8, 12, COLS, ROWS, "Brogue");
-    sodna_load_font_sheet("fonts/terminus-14.png");
+    sodna_init(8, 14, COLS, ROWS, "Brogue");
     rogueMain();
     sodna_exit();
 }

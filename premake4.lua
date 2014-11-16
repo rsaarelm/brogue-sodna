@@ -1,9 +1,9 @@
 solution "brogue"
     configurations { "Debug", "Release" }
+
     includedirs {
         "src/brogue",
         "src/platform",
-        "src/sodna-0.2.0/include",
         "/usr/include/SDL2",
     }
 
@@ -15,7 +15,6 @@ solution "brogue"
             "src/brogue/**.h",
             "src/platform/**.h",
             "src/platform/**.c",
-            "src/sodna-0.2.0/src_sdl2/**.c",
         }
 
         defines {

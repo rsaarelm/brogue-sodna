@@ -2,7 +2,7 @@
 SDL_FLAGS = `sdl-config --cflags` `sdl-config --libs`
 LIBTCODDIR=src/libtcod-1.5.2
 CFLAGS=-Isrc/brogue -Isrc/platform -Wall -Wno-parentheses ${DEFINES}
-RELEASENAME=brogue-1.7.2
+RELEASENAME=brogue-1.7.4
 LASTTARGET := $(shell ./brogue --target)
 CC ?= gcc
 

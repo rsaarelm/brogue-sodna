@@ -59,8 +59,10 @@ int main(int argc, char *argv[])
 {
 #ifdef BROGUE_SODNA
 		currentConsole = sodnaConsole;
-#else
+#elif defined BROGUE_CURSES
 		currentConsole = cursesConsole;
+#else
+#error "No backend defined"
 #endif
 
 	rogue.nextGame = NG_NOTHING;

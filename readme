@@ -53,17 +53,7 @@ If you are using xterm, read http://push.cx/2008/256-color-xterms-in-ubuntu
 
 --
 
-The Makefile accepts these targets:
-	make sodna
-	make curses
-	make both
+To build, generate the Makefile with premake, then run make:
 
-If you build for curses only, libsodna is not required and SDL will not be linked
-or initialized at runtime.  If you build for Sodna only, you do not need
-ncurses-dev.
-
-To produce a distributable tar file, make tar.  To clean (as you must after
-changing headers or before switching targets -- sorry about that), make clean.
-
-make both is the default.
-
+    premake4 gmake
+    make

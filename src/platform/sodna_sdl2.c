@@ -1,6 +1,9 @@
 #include "sodna.h"
 #include <SDL.h>
+#include <stdlib.h>
 #include <assert.h>
+#include <string.h>
+#include <math.h>
 
 static SDL_Window* g_win = NULL;
 static SDL_Renderer* g_rend = NULL;
@@ -14,9 +17,7 @@ static int g_rows;
 static int g_font_w;
 static int g_font_h;
 
-const uint8_t font8[] = {
-#include "terminus-14.inc"
-};
+#include "sodna_default_font.inc"
 
 static size_t font_offset(uint8_t symbol, int x, int y) {
     return symbol * g_font_w * g_font_h + y * g_font_w + x;
@@ -32,11 +33,11 @@ static void init_font(uint8_t* font, int font_w, int font_h) {
     for (c = 0; c < 256; c++) {
         for (y = 0; y < font_h; y++) {
             for (x = 0; x < font_w; x++) {
-                int src_x = x * 8 / font_w;
-                int src_y = y * 14 / font_h;
-                font[font_offset(c, x, y)] = font8[
-                    ((c / 16) * 14 + src_y) * 8 * 16 +
-                    (c % 16) * 8 + src_x];
+                int src_x = x * default_font_w / font_w;
+                int src_y = y * default_font_h / font_h;
+                font[font_offset(c, x, y)] = default_font[
+                    ((c / 16) * default_font_h + src_y) * default_font_w * 16 +
+                    (c % 16) * default_font_w + src_x];
             }
         }
     }

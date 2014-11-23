@@ -1,4 +1,3 @@
-#ifdef BROGUE_SODNA
 /*
  * Sodna helper utilities. These aren't dependent on system library bindings
  * like Sodna core.
@@ -36,4 +35,3 @@ int sodna_load_font_sheet(char* path) {
     stbi_image_free(data);
     return SODNA_OK;
 }
-#endif

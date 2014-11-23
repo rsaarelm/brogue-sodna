@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-#define SODNA_VERSION "0.2.0"
+#define SODNA_VERSION "0.2.1"
 
 #define SODNA_EVENT_NONE            0x00
 

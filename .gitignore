@@ -1,0 +1,8 @@
+Makefile
+brogue.make
+obj/
+brogue
+brogue.exe
+BrogueHighScores.txt
+*.broguerec
+*.broguesave

@@ -57,3 +57,8 @@ To build, generate the Makefile with premake, then run make:
 
     premake4 gmake
     make
+
+On Windows, use MinGW/MSYS and do
+
+    ./win32/premake4.exe gmake
+    make

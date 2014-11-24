@@ -14,6 +14,11 @@ static void gameLoop(){
     sodna_exit();
 }
 
+// Switch the case of input characters when caps lock is pressed.
+// Currently (2014-11-24) deactivated since a bug in SDL2, which sodna uses as
+// the backend, makes caps lock state detection unreliable.
+#define CAPS_LOCK_PROTECTION 0
+
 static sodna_Event stored_event;
 static boolean ctrl_pressed = 0;
 static boolean shift_pressed = 0;
@@ -257,6 +262,7 @@ static void sodna_nextKeyOrMouseEvent(
             }
         }
 
+#ifdef CAPS_LOCK_PROTECTION
         // Reverse the effect of caps lock if it's on.
         if (e.type == SODNA_EVENT_CHARACTER && caps_lock) {
             if (isupper(e.ch.code)) {
@@ -265,6 +271,7 @@ static void sodna_nextKeyOrMouseEvent(
                 e.ch.code = toupper(e.ch.code);
             }
         }
+#endif
 
         // Keymap translation.
         if (e.type == SODNA_EVENT_CHARACTER && e.ch.code < 128) {

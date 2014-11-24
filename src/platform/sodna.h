@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-#define SODNA_VERSION "0.2.1"
+#define SODNA_VERSION "0.3.0-pre"
 
 #define SODNA_EVENT_NONE            0x00
 
@@ -55,6 +55,7 @@ typedef struct {
     unsigned ctrl: 1;
     unsigned alt: 1;
     unsigned super: 1;
+    unsigned caps_lock: 1;
 } sodna_KeyPressed;
 
 typedef struct {

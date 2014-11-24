@@ -4,6 +4,7 @@
 #include "sodna_util.h"
 #include <time.h>
 #include <string.h>
+#include <ctype.h>
 
 extern playerCharacter rogue;
 
@@ -16,6 +17,7 @@ static void gameLoop(){
 static sodna_Event stored_event;
 static boolean ctrl_pressed = 0;
 static boolean shift_pressed = 0;
+static boolean caps_lock = 0;
 static int old_mouse_x = 0;
 static int old_mouse_y = 0;
 static int mouse_x = 0;
@@ -161,6 +163,8 @@ static sodna_Event get_event(boolean consume) {
             case SODNA_KEY_PRINT_SCREEN:
                 screenshot();
         }
+
+        caps_lock = e.key.caps_lock;
     }
 
     return e;
@@ -250,6 +254,15 @@ static void sodna_nextKeyOrMouseEvent(
             if (e.button.id == SODNA_RIGHT_BUTTON) {
                 returnEvent->eventType = RIGHT_MOUSE_UP;
                 return;
+            }
+        }
+
+        // Reverse the effect of caps lock if it's on.
+        if (e.type == SODNA_EVENT_CHARACTER && caps_lock) {
+            if (isupper(e.ch.code)) {
+                e.ch.code = tolower(e.ch.code);
+            } else if (islower(e.ch.code)) {
+                e.ch.code = toupper(e.ch.code);
             }
         }
 

@@ -142,33 +142,13 @@ static sodna_Event get_event(boolean consume) {
         mouse_y = e.mouse.y;
     }
 
-    if (e.type == SODNA_EVENT_KEY_UP) {
-        switch (e.key.layout) {
-            case SODNA_KEY_LEFT_CONTROL:
-            case SODNA_KEY_RIGHT_CONTROL:
-                ctrl_pressed = 0;
-                break;
-            case SODNA_KEY_LEFT_SHIFT:
-            case SODNA_KEY_RIGHT_SHIFT:
-                shift_pressed = 0;
-                break;
-        }
+    if (e.type == SODNA_EVENT_KEY_DOWN && e.key.layout == SODNA_KEY_PRINT_SCREEN) {
+        screenshot();
     }
 
-    if (e.type == SODNA_EVENT_KEY_DOWN) {
-        switch (e.key.layout) {
-            case SODNA_KEY_LEFT_CONTROL:
-            case SODNA_KEY_RIGHT_CONTROL:
-                ctrl_pressed = 1;
-                break;
-            case SODNA_KEY_LEFT_SHIFT:
-            case SODNA_KEY_RIGHT_SHIFT:
-                shift_pressed = 1;
-                break;
-            case SODNA_KEY_PRINT_SCREEN:
-                screenshot();
-        }
-
+    if (e.type == SODNA_EVENT_KEY_UP || e.type == SODNA_EVENT_KEY_DOWN) {
+        ctrl_pressed = e.key.ctrl;
+        shift_pressed = e.key.shift;
         caps_lock = e.key.caps_lock;
     }
 
@@ -262,16 +242,20 @@ static void sodna_nextKeyOrMouseEvent(
             }
         }
 
-#ifdef CAPS_LOCK_PROTECTION
         // Reverse the effect of caps lock if it's on.
-        if (e.type == SODNA_EVENT_CHARACTER && caps_lock) {
-            if (isupper(e.ch.code)) {
-                e.ch.code = tolower(e.ch.code);
-            } else if (islower(e.ch.code)) {
-                e.ch.code = toupper(e.ch.code);
+        if (e.type == SODNA_EVENT_CHARACTER) {
+            // XXX: Due to a bug in SDL2, used as backend by Sodna, caps lock
+            // state isn't maintained robustly. So we can't rely on the
+            // modifier. Look at shift state and the character case instead.
+            //if (caps_lock) {
+            if ((isupper(e.ch.code) && !shift_pressed) || (islower(e.ch.code) && shift_pressed)) {
+                if (isupper(e.ch.code)) {
+                    e.ch.code = tolower(e.ch.code);
+                } else if (islower(e.ch.code)) {
+                    e.ch.code = toupper(e.ch.code);
+                }
             }
         }
-#endif
 
         // Keymap translation.
         if (e.type == SODNA_EVENT_CHARACTER && e.ch.code < 128) {

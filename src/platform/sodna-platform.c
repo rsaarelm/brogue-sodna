@@ -374,12 +374,12 @@ static void sodna_plotChar(
     }
     c.symbol = ch;
 
-    c.fore_r = foreRed * 15 / 100;
-    c.fore_g = foreGreen * 15 / 100;
-    c.fore_b = foreBlue * 15 / 100;
-    c.back_r = backRed * 15 / 100;
-    c.back_g = backGreen * 15 / 100;
-    c.back_b = backBlue * 15 / 100;
+    c.fore.r = foreRed * 255 / 100;
+    c.fore.g = foreGreen * 255 / 100;
+    c.fore.b = foreBlue * 255 / 100;
+    c.back.r = backRed * 255 / 100;
+    c.back.g = backGreen * 255 / 100;
+    c.back.b = backBlue * 255 / 100;
     if (xLoc >= 0 && yLoc >= 0 && xLoc < COLS && yLoc < ROWS)
         sodna_cells()[xLoc + COLS * yLoc] = c;
 }

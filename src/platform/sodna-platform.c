@@ -232,8 +232,8 @@ static sodna_Event get_event(boolean consume) {
             sodna_set_fullscreen(is_fullscreen_mode);
         }
 
-        if (e.key.layout == SODNA_KEY_F2) { cycle_font(1); }
-        if (e.key.layout == SODNA_KEY_F1) { cycle_font(-1); }
+        if (e.key.layout == SODNA_KEY_PAGE_UP) { cycle_font(1); }
+        if (e.key.layout == SODNA_KEY_PAGE_DOWN) { cycle_font(-1); }
     }
 
     if (e.type == SODNA_EVENT_KEY_UP || e.type == SODNA_EVENT_KEY_DOWN) {
@@ -382,10 +382,6 @@ static void sodna_nextKeyOrMouseEvent(
                 K(SODNA_KEY_DOWN, DOWN_ARROW)
                 K(SODNA_KEY_LEFT, LEFT_ARROW)
                 K(SODNA_KEY_RIGHT, RIGHT_ARROW)
-                K(SODNA_KEY_HOME, UPLEFT_KEY)
-                K(SODNA_KEY_END, DOWNLEFT_KEY)
-                K(SODNA_KEY_PAGE_UP, UPRIGHT_KEY)
-                K(SODNA_KEY_PAGE_DOWN, DOWNRIGHT_KEY)
                 K(SODNA_KEY_KP_1, NUMPAD_1)
                 K(SODNA_KEY_KP_2, NUMPAD_2)
                 K(SODNA_KEY_KP_3, NUMPAD_3)

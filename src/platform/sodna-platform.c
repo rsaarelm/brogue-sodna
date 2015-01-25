@@ -23,6 +23,7 @@ static sodna_Event stored_event;
 static boolean ctrl_pressed = 0;
 static boolean shift_pressed = 0;
 static boolean caps_lock = 0;
+static boolean is_fullscreen_mode = 0;
 static int old_mouse_x = 0;
 static int old_mouse_y = 0;
 static int mouse_x = 0;
@@ -142,8 +143,17 @@ static sodna_Event get_event(boolean consume) {
         mouse_y = e.mouse.y;
     }
 
-    if (e.type == SODNA_EVENT_KEY_DOWN && e.key.layout == SODNA_KEY_PRINT_SCREEN) {
-        screenshot();
+    if (e.type == SODNA_EVENT_KEY_DOWN) {
+        // PrintScreen to save a screenshot.
+        if (e.key.layout == SODNA_KEY_PRINT_SCREEN) {
+            screenshot();
+        }
+
+        // Alt-enter to toggle fullscreen mode.
+        if (e.key.layout == SODNA_KEY_ENTER && e.key.alt) {
+            is_fullscreen_mode = !is_fullscreen_mode;
+            sodna_set_fullscreen(is_fullscreen_mode);
+        }
     }
 
     if (e.type == SODNA_EVENT_KEY_UP || e.type == SODNA_EVENT_KEY_DOWN) {

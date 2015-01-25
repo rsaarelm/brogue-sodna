@@ -2,6 +2,7 @@
 #include "sodna.h"
 #include "platform.h"
 #include "sodna_util.h"
+#include "tinydir.h"
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
@@ -29,6 +30,8 @@ static int old_mouse_y = 0;
 static int mouse_x = 0;
 static int mouse_y = 0;
 #define PAUSE_BETWEEN_EVENT_POLLING 36
+static char current_font_file[512] = "";
+#define FONTS_PATH "fonts/"
 
 // Mappings from unprintable keys to unprintable or printable (negative value)
 // indices. Zero means no mapping.
@@ -104,6 +107,80 @@ static struct { const char* name; int sodna_id; } sodna_key_names[] = {
     { NULL, 0 }
 };
 
+static boolean is_font_sheet(tinydir_file* file) {
+    char extension[16];
+    if (file->is_dir)
+        return false;
+
+    snprintf(extension, sizeof(extension), "%s", file->extension);
+
+    int i;
+    for (i = 0; extension[i]; i++)
+        extension[i] = tolower(extension[i]);
+
+    return
+        strcmp(extension, "bmp") == 0 ||
+        strcmp(extension, "png") == 0 ||
+        strcmp(extension, "jpg") == 0 ||
+        strcmp(extension, "jpeg") == 0 ||
+        strcmp(extension, "gif") == 0;
+}
+
+static void cycle_font(int direction) {
+    tinydir_dir dir;
+    int ret = tinydir_open_sorted(&dir, FONTS_PATH);
+    if (ret != 0) {
+        // Error opening fonts dir.
+        return;
+    }
+    int current_idx = -1;
+    tinydir_file file;
+    int i;
+
+    // Current font file is set, look for its index in the dir.
+    if (current_font_file[0]) {
+        for (i = 0; i < dir.n_files; i++) {
+            tinydir_readfile_n(&dir, &file, i);
+
+            if (strcmp(current_font_file, file.name) == 0) {
+                current_idx = i;
+                break;
+            }
+        }
+    }
+
+    // Traversal direction and the loop bounds.
+    direction = direction < 0 ? -1 : 1;
+    int begin = direction < 0 ? dir.n_files - 1 : 0;
+    int end = direction < 0 ? -1 : dir.n_files;
+
+    // Load the next font sheet file you hit.
+    boolean get_next = current_idx == -1 ? true : false;
+    for (i = begin; i != end; i += direction) {
+        tinydir_readfile_n(&dir, &file, i);
+
+        if (get_next && is_font_sheet(&file)) {
+            // Try to load the next thing that looks like a bitmap.
+            // Keep going if the image loading fails.
+            ret = sodna_load_font_sheet(file.path);
+
+            if (ret == SODNA_OK) {
+                snprintf(current_font_file, sizeof(current_font_file), "%s", file.name);
+                refreshScreen();
+                return;
+            }
+        }
+
+        // Load the file after the current file.
+        if (i == current_idx) { get_next = true; }
+    }
+
+    // Traversed the whole directory and didn't find a next sheet, revert to built-in font.
+    snprintf(current_font_file, sizeof(current_font_file), "");
+    sodna_resize(8, 14, COLS, ROWS);
+    refreshScreen();
+}
+
 static boolean mouse_pos_changed() {
     if (old_mouse_x != mouse_x || old_mouse_y != mouse_y) {
         old_mouse_x = mouse_x;
@@ -154,6 +231,9 @@ static sodna_Event get_event(boolean consume) {
             is_fullscreen_mode = !is_fullscreen_mode;
             sodna_set_fullscreen(is_fullscreen_mode);
         }
+
+        if (e.key.layout == SODNA_KEY_F2) { cycle_font(1); }
+        if (e.key.layout == SODNA_KEY_F1) { cycle_font(-1); }
     }
 
     if (e.type == SODNA_EVENT_KEY_UP || e.type == SODNA_EVENT_KEY_DOWN) {
